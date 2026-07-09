@@ -1,0 +1,14 @@
+{
+  "name": "hello-vue-client",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
