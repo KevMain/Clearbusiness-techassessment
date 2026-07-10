@@ -46,39 +46,76 @@
 
       <!-- Customers Grid -->
       <div v-else>
-        <div v-if="loading" class="loading">
-          <div class="spinner"></div>
-          <p>Loading customers...</p>
-        </div>
-
-        <div v-else-if="error" class="error">
-          <p>{{ error }}</p>
-        </div>
-
-        <div v-else class="table-container">
-          <div class="table-header">
-            <h2>Customers ({{ customers.length }})</h2>
+        <!-- Orders View -->
+        <div v-if="showOrders">
+          <div class="table-container">
+            <div class="table-header">
+              <button @click="backToCustomers" class="back-btn">← Back to Customers</button>
+              <h2>Orders for {{ selectedCustomer?.firstName }} {{ selectedCustomer?.lastName }}</h2>
+            </div>
+            <table class="customers-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Order Date</th>
+                  <th>Required Date</th>
+                  <th>Shipped Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="order in orders" :key="order.orderId">
+                  <td>{{ order.orderId }}</td>
+                  <td>{{ formatDate(order.orderDate) }}</td>
+                  <td>{{ formatDate(order.requiredDate) }}</td>
+                  <td>{{ formatDate(order.shippedDate) }}</td>
+                  <td><span class="status-badge">{{ getStatusText(order.orderStatus) }}</span></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <table class="customers-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>State</th>
-                <th>Email</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="c in customers" :key="c.customerId">
-                <td>{{ c.customerId }}</td>
-                <td>{{ c.firstName }}</td>
-                <td>{{ c.lastName }}</td>
-                <td><span class="state-badge">{{ c.state }}</span></td>
-                <td><a :href="`mailto:${c.email}`" class="email-link">{{ c.email }}</a></td>
-              </tr>
-            </tbody>
-          </table>
+        </div>
+
+        <!-- Customers List -->
+        <div v-else>
+          <div v-if="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading customers...</p>
+          </div>
+
+          <div v-else-if="error" class="error">
+            <p>{{ error }}</p>
+          </div>
+
+          <div v-else class="table-container">
+            <div class="table-header">
+              <h2>Customers ({{ customers.length }})</h2>
+            </div>
+            <table class="customers-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>State</th>
+                  <th>Email</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="c in customers" :key="c.customerId">
+                  <td>{{ c.customerId }}</td>
+                  <td>{{ c.firstName }}</td>
+                  <td>{{ c.lastName }}</td>
+                  <td><span class="state-badge">{{ c.state }}</span></td>
+                  <td><a :href="`mailto:${c.email}`" class="email-link">{{ c.email }}</a></td>
+                  <td>
+                    <button @click="viewOrders(c)" class="orders-btn">Orders</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </main>
@@ -101,6 +138,11 @@ export default {
     const password = ref('')
     const loggingIn = ref(false)
     const loginError = ref(null)
+
+    // Orders state
+    const showOrders = ref(false)
+    const selectedCustomer = ref(null)
+    const orders = ref([])
 
     // Check for existing token on mount
     onMounted(() => {
@@ -155,6 +197,9 @@ export default {
       isAuthenticated.value = false
       customers.value = []
       error.value = null
+      showOrders.value = false
+      selectedCustomer.value = null
+      orders.value = []
     }
 
     const loadCustomers = async () => {
@@ -193,6 +238,63 @@ export default {
       }
     }
 
+    const viewOrders = (customer) => {
+      selectedCustomer.value = customer
+      showOrders.value = true
+
+      // Hardcoded orders for now
+      orders.value = [
+        {
+          orderId: 1001,
+          orderDate: '2024-01-15T10:30:00',
+          requiredDate: '2024-01-20T10:30:00',
+          shippedDate: '2024-01-18T14:20:00',
+          orderStatus: 3
+        },
+        {
+          orderId: 1002,
+          orderDate: '2024-02-10T09:15:00',
+          requiredDate: '2024-02-15T09:15:00',
+          shippedDate: null,
+          orderStatus: 1
+        },
+        {
+          orderId: 1003,
+          orderDate: '2024-03-05T16:45:00',
+          requiredDate: '2024-03-12T16:45:00',
+          shippedDate: '2024-03-10T11:30:00',
+          orderStatus: 3
+        }
+      ]
+    }
+
+    const backToCustomers = () => {
+      showOrders.value = false
+      selectedCustomer.value = null
+      orders.value = []
+    }
+
+    const formatDate = (dateString) => {
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      })
+    }
+
+    const getStatusText = (status) => {
+      const statuses = {
+        1: 'Pending',
+        2: 'Processing',
+        3: 'Shipped',
+        4: 'Delivered',
+        5: 'Cancelled'
+      }
+      return statuses[status] || 'Unknown'
+    }
+
     return { 
       customers, 
       loading, 
@@ -203,7 +305,14 @@ export default {
       loggingIn,
       loginError,
       login,
-      logout
+      logout,
+      showOrders,
+      selectedCustomer,
+      orders,
+      viewOrders,
+      backToCustomers,
+      formatDate,
+      getStatusText
     }
   }
 }
@@ -377,6 +486,50 @@ body {
   border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 600;
+}
+
+.status-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.orders-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.orders-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.back-btn {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 1px solid #667eea;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.back-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
 }
 
 .email-link {
