@@ -77,13 +77,40 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="order in orders" :key="order.orderId">
-                  <td>{{ order.orderId }}</td>
-                  <td>{{ formatDate(order.orderDate) }}</td>
-                  <td>{{ formatDate(order.requiredDate) }}</td>
-                  <td>{{ formatDate(order.shippedDate) }}</td>
-                  <td><span class="status-badge">{{ getStatusText(order.orderStatus) }}</span></td>
-                </tr>
+                <template v-for="order in orders" :key="order.orderId">
+                  <tr class="order-row">
+                    <td>{{ order.orderId }}</td>
+                    <td>{{ formatDate(order.orderDate) }}</td>
+                    <td>{{ formatDate(order.requiredDate) }}</td>
+                    <td>{{ formatDate(order.shippedDate) }}</td>
+                    <td><span class="status-badge">{{ getStatusText(order.orderStatus) }}</span></td>
+                  </tr>
+                  <tr class="items-row">
+                    <td colspan="5">
+                      <div class="items-container">
+                        <h4>Order Items</h4>
+                        <table class="items-table">
+                          <thead>
+                            <tr>
+                              <th>Item ID</th>
+                              <th>List Price</th>
+                              <th>Discount</th>
+                              <th>Final Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="item in getOrderItems(order.orderId)" :key="item.itemId">
+                              <td>{{ item.itemId }}</td>
+                              <td>${{ item.listPrice.toFixed(2) }}</td>
+                              <td>${{ item.discount.toFixed(2) }}</td>
+                              <td>${{ (item.listPrice - item.discount).toFixed(2) }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>
@@ -296,6 +323,19 @@ export default {
       orders.value = []
     }
 
+    const getOrderItems = (orderId) => {
+      // Hardcoded order items for now
+      const allItems = [
+        { orderId: 1, itemId: 101, listPrice: 29.99, discount: 3.00 },
+        { orderId: 1, itemId: 102, listPrice: 49.99, discount: 5.00 },
+        { orderId: 1, itemId: 103, listPrice: 19.99, discount: 2.00 },
+        { orderId: 2, itemId: 201, listPrice: 99.99, discount: 10.00 },
+        { orderId: 2, itemId: 202, listPrice: 149.99, discount: 15.00 },
+        { orderId: 3, itemId: 301, listPrice: 79.99, discount: 8.00 },
+      ]
+      return allItems.filter(item => item.orderId === orderId)
+    }
+
     const formatDate = (dateString) => {
       if (!dateString) return 'N/A'
       const date = new Date(dateString)
@@ -333,6 +373,7 @@ export default {
       orders,
       viewOrders,
       backToCustomers,
+      getOrderItems,
       formatDate,
       getStatusText
     }
@@ -490,7 +531,56 @@ body {
   background-color: #f8f9ff;
 }
 
+.customers-table tbody tr.items-row {
+  background-color: #fafbff;
+}
+
+.customers-table tbody tr.items-row:hover {
+  background-color: #fafbff;
+}
+
 .customers-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.items-container {
+  padding: 1rem 2rem;
+  background: white;
+}
+
+.items-container h4 {
+  margin-bottom: 1rem;
+  color: #667eea;
+  font-size: 1rem;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-left: 2rem;
+}
+
+.items-table thead {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.items-table th {
+  padding: 0.75rem;
+  text-align: left;
+  color: #667eea;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-bottom: 2px solid #667eea;
+}
+
+.items-table td {
+  padding: 0.75rem;
+  color: #555;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.items-table tbody tr:last-child td {
   border-bottom: none;
 }
 
