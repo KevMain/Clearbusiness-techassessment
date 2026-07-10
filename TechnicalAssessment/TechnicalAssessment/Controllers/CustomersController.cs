@@ -18,9 +18,27 @@ public class CustomersController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Customer>> Get()
+    public IActionResult Get()
     {
         var customers = _dataStore.Report.Customers.Successes;
-        return Ok(customers);
+        var customerTotals = _dataStore.Report.GetCustomerTotals();
+
+        // Count orders per customer
+        var orderCounts = _dataStore.Report.Orders.Successes
+            .GroupBy(o => o.CustomerId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var customersWithStats = customers.Select(c => new
+        {
+            c.CustomerId,
+            c.FirstName,
+            c.LastName,
+            c.State,
+            c.Email,
+            OrderCount = orderCounts.TryGetValue(c.CustomerId, out var count) ? count : 0,
+            Total = customerTotals.TryGetValue(c.CustomerId, out var total) ? total : 0m
+        }).ToList();
+
+        return Ok(customersWithStats);
     }
 }
