@@ -2,42 +2,84 @@
   <div class="app">
     <header class="header">
       <h1>Customer Directory</h1>
+      <button v-if="isAuthenticated" @click="logout" class="logout-btn">Logout</button>
     </header>
 
     <main class="main-content">
-      <div v-if="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Loading customers...</p>
-      </div>
-
-      <div v-else-if="error" class="error">
-        <p>{{ error }}</p>
-      </div>
-
-      <div v-else class="table-container">
-        <div class="table-header">
-          <h2>Customers ({{ customers.length }})</h2>
+      <!-- Login Form -->
+      <div v-if="!isAuthenticated" class="login-container">
+        <div class="login-card">
+          <h2>Login</h2>
+          <form @submit.prevent="login">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                id="username"
+                v-model="username"
+                type="text"
+                placeholder="Enter username"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                id="password"
+                v-model="password"
+                type="password"
+                placeholder="Enter password"
+                required
+              />
+            </div>
+            <button type="submit" class="login-btn" :disabled="loggingIn">
+              {{ loggingIn ? 'Logging in...' : 'Login' }}
+            </button>
+            <div v-if="loginError" class="login-error">
+              {{ loginError }}
+            </div>
+            <div class="login-hint">
+              <small>Hint: admin / password</small>
+            </div>
+          </form>
         </div>
-        <table class="customers-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>State</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in customers" :key="c.customerId">
-              <td>{{ c.customerId }}</td>
-              <td>{{ c.firstName }}</td>
-              <td>{{ c.lastName }}</td>
-              <td><span class="state-badge">{{ c.state }}</span></td>
-              <td><a :href="`mailto:${c.email}`" class="email-link">{{ c.email }}</a></td>
-            </tr>
-          </tbody>
-        </table>
+      </div>
+
+      <!-- Customers Grid -->
+      <div v-else>
+        <div v-if="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Loading customers...</p>
+        </div>
+
+        <div v-else-if="error" class="error">
+          <p>{{ error }}</p>
+        </div>
+
+        <div v-else class="table-container">
+          <div class="table-header">
+            <h2>Customers ({{ customers.length }})</h2>
+          </div>
+          <table class="customers-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>State</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in customers" :key="c.customerId">
+                <td>{{ c.customerId }}</td>
+                <td>{{ c.firstName }}</td>
+                <td>{{ c.lastName }}</td>
+                <td><span class="state-badge">{{ c.state }}</span></td>
+                <td><a :href="`mailto:${c.email}`" class="email-link">{{ c.email }}</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   </div>
@@ -49,15 +91,91 @@ import { ref, onMounted } from 'vue'
 export default {
   setup() {
     const customers = ref([])
-    const loading = ref(true)
+    const loading = ref(false)
     const error = ref(null)
 
-    onMounted(async () => {
+    // Auth state
+    const isAuthenticated = ref(false)
+    const token = ref(null)
+    const username = ref('')
+    const password = ref('')
+    const loggingIn = ref(false)
+    const loginError = ref(null)
+
+    // Check for existing token on mount
+    onMounted(() => {
+      const savedToken = localStorage.getItem('jwt_token')
+      if (savedToken) {
+        token.value = savedToken
+        isAuthenticated.value = true
+        loadCustomers()
+      }
+    })
+
+    const login = async () => {
+      loggingIn.value = true
+      loginError.value = null
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: username.value,
+            password: password.value
+          })
+        })
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}))
+          throw new Error(errorData.message || 'Login failed')
+        }
+
+        const data = await res.json()
+        token.value = data.token
+        localStorage.setItem('jwt_token', data.token)
+        isAuthenticated.value = true
+
+        // Clear form
+        username.value = ''
+        password.value = ''
+
+        // Load customers
+        await loadCustomers()
+      } catch (e) {
+        loginError.value = e.message
+      } finally {
+        loggingIn.value = false
+      }
+    }
+
+    const logout = () => {
+      token.value = null
+      localStorage.removeItem('jwt_token')
+      isAuthenticated.value = false
+      customers.value = []
+      error.value = null
+    }
+
+    const loadCustomers = async () => {
       loading.value = true
       error.value = null
       try {
-        const res = await fetch('/api/customers')
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const res = await fetch('/api/customers', {
+          headers: {
+            'Authorization': `Bearer ${token.value}`
+          }
+        })
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            // Token expired or invalid
+            logout()
+            throw new Error('Session expired. Please login again.')
+          }
+          throw new Error(`HTTP ${res.status}`)
+        }
+
         const data = await res.json()
 
         // Normalize server-side property casing (support PascalCase or camelCase)
@@ -69,14 +187,24 @@ export default {
           email: c.email ?? c.Email,
         }))
       } catch (e) {
-        error.value = 'Failed to load customers'
-        // keep customers empty
+        error.value = e.message || 'Failed to load customers'
       } finally {
         loading.value = false
       }
-    })
+    }
 
-    return { customers, loading, error }
+    return { 
+      customers, 
+      loading, 
+      error,
+      isAuthenticated,
+      username,
+      password,
+      loggingIn,
+      loginError,
+      login,
+      logout
+    }
   }
 }
 </script>
@@ -105,6 +233,7 @@ body {
 .header {
   text-align: center;
   margin-bottom: 3rem;
+  position: relative;
 }
 
 .header h1 {
@@ -112,6 +241,24 @@ body {
   font-size: 2.5rem;
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.logout-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .main-content {
@@ -241,6 +388,95 @@ body {
 .email-link:hover {
   color: #764ba2;
   text-decoration: underline;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.login-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.75rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  color: #555;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.875rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  color: #c33;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.login-hint {
+  margin-top: 1rem;
+  text-align: center;
+  color: #888;
 }
 
 @media (max-width: 768px) {
