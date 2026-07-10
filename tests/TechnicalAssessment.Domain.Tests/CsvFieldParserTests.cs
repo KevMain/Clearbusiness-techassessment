@@ -73,11 +73,43 @@ public class CsvFieldParserTests
     }
 
     [Fact]
+    public void TryParseDateTimeField_ReturnsTrue_OnDdMmYyyy()
+    {
+        var parts = "16/02/2016,other".Split(',');
+
+        var ok = CsvFieldParser.TryParseDateTimeField(parts, 0, out var dt);
+
+        Assert.True(ok);
+        Assert.Equal(new DateTime(2016, 2, 16), dt.Date);
+    }
+
+    [Fact]
     public void TryParseDateTimeField_ReturnsFalse_OnInvalidDate()
     {
         var parts = "notadate,other".Split(',');
 
         var ok = CsvFieldParser.TryParseDateTimeField(parts, 0, out _);
+
+        Assert.False(ok);
+    }
+
+    [Fact]
+    public void TryParseDecimalField_ReturnsTrueAndValue_OnValidDecimal()
+    {
+        var parts = "549.99,other".Split(',');
+
+        var ok = CsvFieldParser.TryParseDecimalField(parts, 0, out var val);
+
+        Assert.True(ok);
+        Assert.Equal(549.99m, val);
+    }
+
+    [Fact]
+    public void TryParseDecimalField_ReturnsFalse_OnInvalidDecimal()
+    {
+        var parts = "notanumber,other".Split(',');
+
+        var ok = CsvFieldParser.TryParseDecimalField(parts, 0, out _);
 
         Assert.False(ok);
     }

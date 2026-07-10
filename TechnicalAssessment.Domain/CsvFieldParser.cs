@@ -21,6 +21,15 @@ public static class CsvFieldParser
         return int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
     }
 
+    public static bool TryParseDecimalField(string[] parts, int index, out decimal value)
+    {
+        value = default;
+        var s = GetField(parts, index);
+        if (s == null)
+            return false;
+        return decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+    }
+
     public static bool TryParseDateTimeField(string[] parts, int index, out DateTime value)
     {
         value = default;
