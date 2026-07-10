@@ -14,20 +14,22 @@ public class OrderCsvParserTests
 
         var result = parser.Parse(csv);
 
-        Assert.NotNull(result);
-        Assert.Equal(expectedOrderId, result!.OrderId);
-        Assert.Equal(expectedCustomerId, result.CustomerId);
-        Assert.Equal(expectedStatus, result.OrderStatus);
-        Assert.Equal(expectedOrderDate.Date, result.OrderDate.Date);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        var order = result.Value!;
+        Assert.Equal(expectedOrderId, order.OrderId);
+        Assert.Equal(expectedCustomerId, order.CustomerId);
+        Assert.Equal(expectedStatus, order.OrderStatus);
+        Assert.Equal(expectedOrderDate.Date, order.OrderDate.Date);
         if (expectedRequiredDate.HasValue)
-            Assert.Equal(expectedRequiredDate.Value.Date, result.RequiredDate?.Date);
+            Assert.Equal(expectedRequiredDate.Value.Date, order.RequiredDate?.Date);
         else
-            Assert.Null(result.RequiredDate);
+            Assert.Null(order.RequiredDate);
 
         if (expectedShipped.HasValue)
-            Assert.Equal(expectedShipped.Value.Date, result.ShippedDate?.Date);
+            Assert.Equal(expectedShipped.Value.Date, order.ShippedDate?.Date);
         else
-            Assert.Null(result.ShippedDate);
+            Assert.Null(order.ShippedDate);
     }
 
     [Theory]
@@ -38,6 +40,6 @@ public class OrderCsvParserTests
 
         var result = parser.Parse(csv);
 
-        Assert.Null(result);
+        Assert.False(result.IsSuccess);
     }
 }

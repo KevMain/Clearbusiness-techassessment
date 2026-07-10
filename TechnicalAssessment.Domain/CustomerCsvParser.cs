@@ -2,24 +2,21 @@ namespace TechnicalAssessment.Domain;
 
 public class CustomerCsvParser : IRecordParser<Customer>
 {
-    public Customer? Parse(string csvLine)
+    public ParseResult<Customer> Parse(string csvLine)
     {
-        // Basic validation to ensure the line is not null or empty
         if (string.IsNullOrWhiteSpace(csvLine))
-            return null;
+            return ParseResult<Customer>.Failure("Empty or whitespace line", csvLine);
 
-        // Split the CSV line into parts. For the sample files we assume no quoted commas.
         var parts = csvLine.Split(',');
         if (parts.Length < 9)
-            return null;
+            return ParseResult<Customer>.Failure("Too few columns", csvLine);
 
-        // Treat header rows as ignorable
         var first = CsvFieldParser.GetField(parts, 0);
         if (string.Equals(first, "customer_id", StringComparison.OrdinalIgnoreCase))
-            return null;
+            return ParseResult<Customer>.Failure("Header row", csvLine);
 
         if (!CsvFieldParser.TryParseIntField(parts, 0, out var id))
-            return null;
+            return ParseResult<Customer>.Failure("Invalid customer_id", csvLine);
 
         var firstName = CsvFieldParser.ParseStringField(parts, 1) ?? string.Empty;
         var lastName = CsvFieldParser.ParseStringField(parts, 2) ?? string.Empty;
@@ -30,7 +27,7 @@ public class CustomerCsvParser : IRecordParser<Customer>
         var state = CsvFieldParser.ParseStringField(parts, 7) ?? string.Empty;
         var zip = CsvFieldParser.ParseStringField(parts, 8) ?? string.Empty;
 
-        return new Customer
+        var customer = new Customer
         {
             CustomerId = id,
             FirstName = firstName,
@@ -42,5 +39,7 @@ public class CustomerCsvParser : IRecordParser<Customer>
             State = state,
             ZipCode = zip
         };
+
+        return ParseResult<Customer>.Success(customer, csvLine);
     }
 }

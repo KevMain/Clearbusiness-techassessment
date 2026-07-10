@@ -24,19 +24,21 @@ public class CustomerCsvParserTests
 
         var result = parser.Parse(csv);
 
-        Assert.NotNull(result);
-        Assert.Equal(expectedId, result!.CustomerId);
-        Assert.Equal(expectedFirst, result.FirstName);
-        Assert.Equal(expectedLast, result.LastName);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        var customer = result.Value!;
+        Assert.Equal(expectedId, customer.CustomerId);
+        Assert.Equal(expectedFirst, customer.FirstName);
+        Assert.Equal(expectedLast, customer.LastName);
         if (string.IsNullOrEmpty(expectedPhone))
-            Assert.True(string.IsNullOrEmpty(result.Phone));
+            Assert.True(string.IsNullOrEmpty(customer.Phone));
         else
-            Assert.Equal(expectedPhone, result.Phone);
-        Assert.Equal(expectedEmail, result.Email);
-        Assert.Equal(expectedStreet, result.Street);
-        Assert.Equal(expectedCity, result.City);
-        Assert.Equal(expectedState, result.State);
-        Assert.Equal(expectedZip, result.ZipCode);
+            Assert.Equal(expectedPhone, customer.Phone);
+        Assert.Equal(expectedEmail, customer.Email);
+        Assert.Equal(expectedStreet, customer.Street);
+        Assert.Equal(expectedCity, customer.City);
+        Assert.Equal(expectedState, customer.State);
+        Assert.Equal(expectedZip, customer.ZipCode);
     }
 
     [Theory]
@@ -47,6 +49,6 @@ public class CustomerCsvParserTests
 
         var result = parser.Parse(csv);
 
-        Assert.Null(result);
+        Assert.False(result.IsSuccess);
     }
 }
