@@ -14,8 +14,10 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
   </ItemGroup>
-  <!-- ProjectReferences to separate class library projects were removed to keep the sample self-contained.
-       The layered folders (Domain, Application, Infrastructure) are included directly in this project for the demo.
-  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\TechnicalAssessment.Domain\TechnicalAssessment.Domain.csproj" />
+    <ProjectReference Include="..\..\TechnicalAssessment.Application\TechnicalAssessment.Application.csproj" />
+    <ProjectReference Include="..\..\TechnicalAssessment.Infrastructure\TechnicalAssessment.Infrastructure.csproj" />
+  </ItemGroup>
 
 </Project>
