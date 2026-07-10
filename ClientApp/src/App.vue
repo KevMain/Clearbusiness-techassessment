@@ -1,28 +1,48 @@
 <template>
   <div>
-    <h1>Frontend: Hello Vue</h1>
-    <p>API Response: {{ message }}</p>
+    <h1>Customers</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>State</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="c in customers" :key="c.customerId">
+          <td>{{ c.customerId }}</td>
+          <td>{{ c.firstName }}</td>
+          <td>{{ c.lastName }}</td>
+          <td>{{ c.state }}</td>
+          <td>{{ c.email }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
 export default {
   setup() {
-    const message = ref('loading...')
+    const customers = ref([
+      { customerId: 1, firstName: 'Debra', lastName: 'Burks', state: 'NY', email: 'debra.burks@yahoo.com' },
+      { customerId: 2, firstName: 'Kasha', lastName: 'Todd', state: 'CA', email: 'kasha.todd@yahoo.com' },
+      { customerId: 3, firstName: 'Tameka', lastName: 'Fisher', state: 'CA', email: 'tameka.fisher@aol.com' },
+      { customerId: 4, firstName: 'Daryl', lastName: 'Spence', state: 'NY', email: 'daryl.spence@aol.com' }
+    ])
 
-    onMounted(async () => {
-      try {
-        const res = await fetch('/api/hello')
-        const data = await res.json()
-        message.value = data.message
-      } catch (e) {
-        message.value = 'error fetching API'
-      }
-    })
-
-    return { message }
+    return { customers }
   }
 }
 </script>
+
+<style>
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 8px; }
+th { background: #f4f4f4; text-align: left; }
+</style>
