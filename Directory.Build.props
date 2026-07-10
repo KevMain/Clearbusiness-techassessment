@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+	<!-- Centralized build settings for all projects -->
+	<LangVersion>14.0</LangVersion>
+	<Nullable>enable</Nullable>
+	<!-- Do not force warnings as errors in developer workspace by default -->
+	<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	<!-- Use deterministic builds where possible -->
+	<ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>
