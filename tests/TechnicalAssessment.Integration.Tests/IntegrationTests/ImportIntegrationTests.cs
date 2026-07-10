@@ -36,7 +36,13 @@ public class ImportIntegrationTests
 
         // Basic sanity checks: at least one customer and no parser crashes
         Assert.True(report.Customers.Successes.Count >= 1, "Expected at least one parsed customer");
-
         Assert.NotNull(report);
+
+        // Verify order totals calculation for a known order (76)
+        var totals = report.GetOrderTotals();
+        Assert.True(totals.ContainsKey(76));
+        var total76 = totals[76];
+        // Expected: sum of orderitems for order 76 from TestData
+        Assert.True(total76 > 0);
     }
 }

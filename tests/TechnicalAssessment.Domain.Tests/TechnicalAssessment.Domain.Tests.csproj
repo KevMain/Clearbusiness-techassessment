@@ -17,14 +17,4 @@
 	<ProjectReference Include="..\..\TechnicalAssessment.Domain\TechnicalAssessment.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-	<None Include="TestData\*.csv">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	</None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="IntegrationTests\" />
-  </ItemGroup>
-
 </Project>
