@@ -18,14 +18,32 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("customer/{customerId}")]
-    public ActionResult<IEnumerable<Order>> GetByCustomerId(int customerId)
+    public IActionResult GetByCustomerId(int customerId)
     {
         var orders = _dataStore.Report.Orders.Successes
             .Where(o => o.CustomerId == customerId)
             .OrderByDescending(o => o.OrderDate)
             .ToList();
 
-        return Ok(orders);
+        var orderTotals = _dataStore.Report.GetOrderTotals();
+        var customerTotals = _dataStore.Report.GetCustomerTotals();
+
+        var ordersWithTotals = orders.Select(o => new
+        {
+            o.OrderId,
+            o.CustomerId,
+            o.OrderStatus,
+            o.OrderDate,
+            o.RequiredDate,
+            o.ShippedDate,
+            OrderTotal = orderTotals.TryGetValue(o.OrderId, out var total) ? total : 0m
+        }).ToList();
+
+        return Ok(new
+        {
+            Orders = ordersWithTotals,
+            CustomerTotal = customerTotals.TryGetValue(customerId, out var custTotal) ? custTotal : 0m
+        });
     }
 
     [HttpGet("{orderId}/items")]
