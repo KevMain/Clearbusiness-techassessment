@@ -1,37 +1,46 @@
 namespace TechnicalAssessment.Domain;
 
-public class CustomerCsvParser
+public class CustomerCsvParser : IRecordParser<Customer>
 {
     public Customer? Parse(string csvLine)
     {
-        // Basic validation to ensure the line is not null or empty and has enough parts
+        // Basic validation to ensure the line is not null or empty
         if (string.IsNullOrWhiteSpace(csvLine))
             return null;
 
-        // Split the CSV line into parts. Assuming the CSV is well-formed and does not contain commas within quoted strings.
+        // Split the CSV line into parts. For the sample files we assume no quoted commas.
         var parts = csvLine.Split(',');
         if (parts.Length < 9)
             return null;
 
-        try
-        {
-            return new Customer
-            {
-                CustomerId = int.Parse(parts[0].Trim()),
-                FirstName = parts[1].Trim(),
-                LastName = parts[2].Trim(),
-                Phone = string.IsNullOrEmpty(parts[3].Trim()) ? null : parts[3].Trim(), // This could be empty, so we handle that case
-                Email = parts[4].Trim(),
-                Street = parts[5].Trim(),
-                City = parts[6].Trim(),
-                State = parts[7].Trim(),
-                ZipCode = parts[8].Trim()
-            };
-        }
-        catch
-        {
-            //TODO: Should handle errors in a better way, maybe log them or throw a custom exception
+        // Treat header rows as ignorable
+        var first = CsvFieldParser.GetField(parts, 0);
+        if (string.Equals(first, "customer_id", StringComparison.OrdinalIgnoreCase))
             return null;
-        }
+
+        if (!CsvFieldParser.TryParseIntField(parts, 0, out var id))
+            return null;
+
+        var firstName = CsvFieldParser.ParseStringField(parts, 1) ?? string.Empty;
+        var lastName = CsvFieldParser.ParseStringField(parts, 2) ?? string.Empty;
+        var phone = CsvFieldParser.ParseStringField(parts, 3);
+        var email = CsvFieldParser.ParseStringField(parts, 4) ?? string.Empty;
+        var street = CsvFieldParser.ParseStringField(parts, 5) ?? string.Empty;
+        var city = CsvFieldParser.ParseStringField(parts, 6) ?? string.Empty;
+        var state = CsvFieldParser.ParseStringField(parts, 7) ?? string.Empty;
+        var zip = CsvFieldParser.ParseStringField(parts, 8) ?? string.Empty;
+
+        return new Customer
+        {
+            CustomerId = id,
+            FirstName = firstName,
+            LastName = lastName,
+            Phone = phone,
+            Email = email,
+            Street = street,
+            City = city,
+            State = state,
+            ZipCode = zip
+        };
     }
 }
