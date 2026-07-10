@@ -16,4 +16,11 @@
     <ProjectReference Include="..\..\TechnicalAssessment.Infrastructure\TechnicalAssessment.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Include frontend ClientApp files as linked items so they appear in Solution Explorer -->
+  <ItemGroup>
+    <None Include="..\ClientApp\**\*" Exclude="..\ClientApp\node_modules\**;..\ClientApp\dist\**;..\ClientApp\.git\**;..\ClientApp\**\*.log">
+      <Link>ClientApp\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
 </Project>
