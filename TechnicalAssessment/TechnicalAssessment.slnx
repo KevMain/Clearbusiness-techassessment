@@ -5,7 +5,6 @@
   </Project>
   <Project Path="TechnicalAssessment/TechnicalAssessment.csproj" />
   <Project Path="../TechnicalAssessment.Domain/TechnicalAssessment.Domain.csproj" />
-  <Folder Name="/tests/" />
   <Project Path="../TechnicalAssessment.Application/TechnicalAssessment.Application.csproj" />
   <Project Path="../TechnicalAssessment.Infrastructure/TechnicalAssessment.Infrastructure.csproj" />
 </Solution>
