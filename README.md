@@ -34,3 +34,11 @@ More details
 - See `TechnicalAssessment/README.md` for backend details.
 - See `ClientApp/README.md` for frontend details and example Vite proxy configuration.
 
+One-command run (Windows / PowerShell)
+
+From the repository root you can run a single PowerShell script that launches the backend and frontend in separate PowerShell windows:
+
+   .\run.ps1
+
+This opens two new terminals: one running the ASP.NET backend and one running the Vite dev server.
+
