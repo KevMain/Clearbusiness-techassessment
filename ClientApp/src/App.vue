@@ -183,6 +183,7 @@ export default {
     const showOrders = ref(false)
     const selectedCustomer = ref(null)
     const orders = ref([])
+    const orderItems = ref([])
 
     // Check for existing token on mount
     onMounted(() => {
@@ -240,6 +241,7 @@ export default {
       showOrders.value = false
       selectedCustomer.value = null
       orders.value = []
+      orderItems.value = []
     }
 
     const loadCustomers = async () => {
@@ -309,11 +311,45 @@ export default {
           shippedDate: o.shippedDate ?? o.ShippedDate,
           orderStatus: o.orderStatus ?? o.OrderStatus,
         }))
+
+        // Fetch items for all orders
+        await loadOrderItems(orders.value)
       } catch (e) {
         error.value = e.message || 'Failed to load orders'
         orders.value = []
+        orderItems.value = []
       } finally {
         loading.value = false
+      }
+    }
+
+    const loadOrderItems = async (ordersList) => {
+      try {
+        const itemPromises = ordersList.map(order =>
+          fetch(`/api/orders/${order.orderId}/items`, {
+            headers: {
+              'Authorization': `Bearer ${token.value}`
+            }
+          }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            return res.json()
+          })
+        )
+
+        const itemsArrays = await Promise.all(itemPromises)
+
+        // Flatten and normalize all items
+        const allItems = itemsArrays.flat().map((item) => ({
+          orderId: item.orderId ?? item.OrderId,
+          itemId: item.itemId ?? item.ItemId,
+          listPrice: item.listPrice ?? item.ListPrice,
+          discount: item.discount ?? item.Discount,
+        }))
+
+        orderItems.value = allItems
+      } catch (e) {
+        console.error('Failed to load order items:', e)
+        orderItems.value = []
       }
     }
 
@@ -321,19 +357,11 @@ export default {
       showOrders.value = false
       selectedCustomer.value = null
       orders.value = []
+      orderItems.value = []
     }
 
     const getOrderItems = (orderId) => {
-      // Hardcoded order items for now
-      const allItems = [
-        { orderId: 1, itemId: 101, listPrice: 29.99, discount: 3.00 },
-        { orderId: 1, itemId: 102, listPrice: 49.99, discount: 5.00 },
-        { orderId: 1, itemId: 103, listPrice: 19.99, discount: 2.00 },
-        { orderId: 2, itemId: 201, listPrice: 99.99, discount: 10.00 },
-        { orderId: 2, itemId: 202, listPrice: 149.99, discount: 15.00 },
-        { orderId: 3, itemId: 301, listPrice: 79.99, discount: 8.00 },
-      ]
-      return allItems.filter(item => item.orderId === orderId)
+      return orderItems.value.filter(item => item.orderId === orderId)
     }
 
     const formatDate = (dateString) => {
@@ -371,6 +399,7 @@ export default {
       showOrders,
       selectedCustomer,
       orders,
+      orderItems,
       viewOrders,
       backToCustomers,
       getOrderItems,
