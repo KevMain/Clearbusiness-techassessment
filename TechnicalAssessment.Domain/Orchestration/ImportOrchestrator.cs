@@ -22,7 +22,7 @@ public static class ImportOrchestrator
         var customersById = report.Customers.Successes.ToDictionary(c => c.CustomerId);
 
         var ordersResult = CsvImporter.ParseLines(orderLines, orderParser);
-        
+
         // For each successful order, validate customer exists
         foreach (var order in ordersResult.Successes)
         {

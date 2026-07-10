@@ -46,9 +46,9 @@ public sealed class ImportReport
                     customersById.TryGetValue(order.CustomerId, out customer);
 
                 var additional = discountEngine?.GetAdditionalDiscount(it, order!, customer) ?? 0m;
-                
+
                 var effective = baseDiscount + additional;
-                
+
                 return it.ListPrice * (1 - effective);
             }));
     }
@@ -56,7 +56,7 @@ public sealed class ImportReport
     public Dictionary<int, decimal> GetCustomerTotals()
     {
         var orderTotals = GetOrderTotals();
-        
+
         var totals = new Dictionary<int, decimal>();
 
         foreach (var order in Orders.Successes)
@@ -74,7 +74,7 @@ public sealed class ImportReport
             if (!totals.ContainsKey(customer.CustomerId))
                 totals[customer.CustomerId] = 0m;
         }
-        
+
 
         return totals;
     }
