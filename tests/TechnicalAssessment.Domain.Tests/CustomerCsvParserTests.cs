@@ -8,8 +8,8 @@ public class CustomerCsvParserTests
     [Fact]
     public void Parse_HeaderRow_IsIgnored()
     {
-        var header = "customer_id,first_name,last_name,phone,email,street,city,state,zip_code";
-        var parser = new CustomerCsvParser();
+        var header = CustomerTestData.Header;
+        var parser = CustomerTestData.CreateParser();
 
         var result = parser.Parse(header);
 
@@ -20,8 +20,8 @@ public class CustomerCsvParserTests
     public void Parse_ValidCsvLine_ReturnsCustomerWithMappedFields()
     {
         // Arrange
-        var csv = "1,Debra,Burks,,debra.burks@yahoo.com,9273 Thorne Ave. ,Orchard Park,NY,14127";
-        var customerCsvParser = new CustomerCsvParser();
+        var csv = CustomerTestData.Debra;
+        var customerCsvParser = CustomerTestData.CreateParser();
 
         // Act
         var result = customerCsvParser.Parse(csv);
@@ -42,8 +42,8 @@ public class CustomerCsvParserTests
     [Fact]
     public void Parse_InvalidCsvLine_ReturnsNull()
     {
-        var csv = "X,Invalid,User,,invalid@example.com,Some St,City,ST,12345";
-        var parser = new CustomerCsvParser();
+        var csv = CustomerTestData.Invalid;
+        var parser = CustomerTestData.CreateParser();
 
         var result = parser.Parse(csv);
 
@@ -53,8 +53,8 @@ public class CustomerCsvParserTests
     [Fact]
     public void Parse_CsvLine_TrimsWhitespace()
     {
-        var csv = " 2 , Kasha , Todd , , kasha.todd@yahoo.com , 910 Vine Street  , Campbell , CA , 95008 ";
-        var parser = new CustomerCsvParser();
+        var csv = CustomerTestData.Kasha;
+        var parser = CustomerTestData.CreateParser();
 
         var result = parser.Parse(csv);
 
@@ -72,8 +72,8 @@ public class CustomerCsvParserTests
     [Fact]
     public void Parse_CsvLine_WithPhone_ReturnsPhone()
     {
-        var csv = "5,Charolette,Rice,(916) 381-6003,charolette.rice@msn.com,107 River Dr. ,Sacramento,CA,95820";
-        var parser = new CustomerCsvParser();
+        var csv = CustomerTestData.Charolette;
+        var parser = CustomerTestData.CreateParser();
 
         var result = parser.Parse(csv);
 
@@ -85,8 +85,8 @@ public class CustomerCsvParserTests
     [Fact]
     public void Parse_CsvLine_MissingColumns_ReturnsNull()
     {
-        var csv = "1,Debra,Burks"; // too few columns
-        var parser = new CustomerCsvParser();
+        var csv = CustomerTestData.TooFew; // too few columns
+        var parser = CustomerTestData.CreateParser();
 
         var result = parser.Parse(csv);
 
