@@ -27,6 +27,11 @@ public static class CsvFieldParser
         var s = GetField(parts, index);
         if (s == null)
             return false;
+
+        var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "yyyy-M-d" }; // Check for common date formats
+        if (DateTime.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out value))
+            return true;
+
         return DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
     }
 
