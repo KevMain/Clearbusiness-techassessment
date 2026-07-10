@@ -22,5 +22,7 @@ internal static class OrderTestData
         new object[] { "1,2" }
     };
 
+    public static string OrderWithMissingCustomer => "200,999,1,01/01/2016,01/01/2016,";
+
     public static TechnicalAssessment.Domain.OrderCsvParser CreateParser() => new TechnicalAssessment.Domain.OrderCsvParser();
 }

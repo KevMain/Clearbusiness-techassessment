@@ -23,4 +23,6 @@ internal static class OrderItemTestData
     };
 
     public static TechnicalAssessment.Domain.OrderItemCsvParser CreateParser() => new TechnicalAssessment.Domain.OrderItemCsvParser();
+
+    public static string ItemWithMissingOrder => "888,1,99.99,0.00";
 }

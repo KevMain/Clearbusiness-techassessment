@@ -27,7 +27,8 @@ public abstract class AbstractCsvParser<T> : IRecordParser<T>
         var first = CsvFieldParser.GetField(parts, 0);
         if (string.Equals(first, headerToken, StringComparison.OrdinalIgnoreCase))
         {
-            failure = ParseResult<T>.Failure("Header row", csvLine);
+            var pe = new ParseError("header", "Header row") { Raw = csvLine };
+            failure = ParseResult<T>.Failure(pe, csvLine);
             return false;
         }
 
