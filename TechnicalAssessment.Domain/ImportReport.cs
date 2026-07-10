@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace TechnicalAssessment.Domain;
 
 public sealed class ImportReport
@@ -26,13 +24,35 @@ public sealed class ImportReport
             return list;
         }
     }
-
-    // Compute order totals from parsed order items.
-    // Total = Sum(list_price * (1 - discount)) per order_id
-    public System.Collections.Generic.Dictionary<int, decimal> GetOrderTotals()
+    public Dictionary<int, decimal> GetOrderTotals()
     {
         return Items.Successes
             .GroupBy(i => i.OrderId)
             .ToDictionary(g => g.Key, g => g.Sum(it => it.ListPrice * (1 - it.Discount)));
+    }
+
+    public Dictionary<int, decimal> GetCustomerTotals()
+    {
+        var orderTotals = GetOrderTotals();
+        var totals = new Dictionary<int, decimal>();
+
+        foreach (var order in Orders.Successes)
+        {
+            var amount = orderTotals.TryGetValue(order.OrderId, out var v) ? v : 0m;
+
+            if (totals.ContainsKey(order.CustomerId))
+                totals[order.CustomerId] += amount;
+            else
+                totals[order.CustomerId] = amount;
+        }
+
+        foreach (var customer in Customers.Successes)
+        {
+            if (!totals.ContainsKey(customer.CustomerId))
+                totals[customer.CustomerId] = 0m;
+        }
+        
+
+        return totals;
     }
 }
