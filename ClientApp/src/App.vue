@@ -25,18 +25,39 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 export default {
   setup() {
-    const customers = ref([
-      { customerId: 1, firstName: 'Debra', lastName: 'Burks', state: 'NY', email: 'debra.burks@yahoo.com' },
-      { customerId: 2, firstName: 'Kasha', lastName: 'Todd', state: 'CA', email: 'kasha.todd@yahoo.com' },
-      { customerId: 3, firstName: 'Tameka', lastName: 'Fisher', state: 'CA', email: 'tameka.fisher@aol.com' },
-      { customerId: 4, firstName: 'Daryl', lastName: 'Spence', state: 'NY', email: 'daryl.spence@aol.com' }
-    ])
+    const customers = ref([])
+    const loading = ref(true)
+    const error = ref(null)
 
-    return { customers }
+    onMounted(async () => {
+      loading.value = true
+      error.value = null
+      try {
+        const res = await fetch('/api/customers')
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = await res.json()
+
+        // Normalize server-side property casing (support PascalCase or camelCase)
+        customers.value = (data || []).map((c) => ({
+          customerId: c.customerId ?? c.CustomerId,
+          firstName: c.firstName ?? c.FirstName,
+          lastName: c.lastName ?? c.LastName,
+          state: c.state ?? c.State,
+          email: c.email ?? c.Email,
+        }))
+      } catch (e) {
+        error.value = 'Failed to load customers'
+        // keep customers empty
+      } finally {
+        loading.value = false
+      }
+    })
+
+    return { customers, loading, error }
   }
 }
 </script>

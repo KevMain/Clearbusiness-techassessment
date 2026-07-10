@@ -39,11 +39,13 @@ var dataStore = app.Services.GetRequiredService<TechnicalAssessment.Infrastructu
 var dataFolder = builder.Configuration["DataFolder"];
 if (string.IsNullOrWhiteSpace(dataFolder))
 {
-    // Try common relative path to include test data shipped in the repo
-    dataFolder = Path.Combine(builder.Environment.ContentRootPath, "..", "tests", "TechnicalAssessment.Integration.Tests", "TestData");
+    // Try common relative paths to include test data shipped in the repo (go up two levels from web project's content root)
+    dataFolder = Path.Combine(builder.Environment.ContentRootPath, "..", "..", "tests", "TechnicalAssessment.Integration.Tests", "TestData");
 }
 
 dataFolder = Path.GetFullPath(dataFolder);
-dataStore.LoadFromFolder(dataFolder);
+    app.Logger.LogInformation("Loading CSV data from {DataFolder}", dataFolder);
+    dataStore.LoadFromFolder(dataFolder);
+    app.Logger.LogInformation("Loaded customers={Customers} orders={Orders} items={Items}", dataStore.Report.Customers.Successes.Count, dataStore.Report.Orders.Successes.Count, dataStore.Report.Items.Successes.Count);
 
 app.Run();
