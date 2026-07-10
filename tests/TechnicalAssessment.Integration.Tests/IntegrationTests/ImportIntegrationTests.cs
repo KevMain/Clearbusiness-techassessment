@@ -4,7 +4,7 @@ using System.Linq;
 using TechnicalAssessment.Domain;
 using Xunit;
 
-namespace TechnicalAssessment.Domain.Tests.IntegrationTests;
+namespace TechnicalAssessment.Integration.Tests;
 
 public class ImportIntegrationTests
 {
@@ -37,7 +37,6 @@ public class ImportIntegrationTests
         // Basic sanity checks: at least one customer and no parser crashes
         Assert.True(report.Customers.Successes.Count >= 1, "Expected at least one parsed customer");
 
-        // Failures may exist depending on sample files, but the ImportOrchestrator should complete
         Assert.NotNull(report);
     }
 }

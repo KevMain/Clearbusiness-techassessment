@@ -10,7 +10,6 @@
 	<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.0" />
 	<PackageReference Include="xunit" Version="2.5.3" />
 	<PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
-	<PackageReference Include="FluentAssertions" Version="7.5.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,10 +20,6 @@
 	<None Include="TestData\*.csv">
 	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="IntegrationTests\" />
   </ItemGroup>
 
 </Project>
