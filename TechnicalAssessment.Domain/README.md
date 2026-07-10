@@ -65,3 +65,9 @@ If you want a change
 - To switch from returning null to returning structured errors, I can implement a small Result<T> type and update parsers and tests accordingly — say the word and I will prepare a migration plan and tests.
 
 Document author: GitHub Copilot (on behalf of repository maintainer)
+
+Domain event: CustomerDiscountApplied
+-----------------------------------
+- Why model as an event: Applying an additional customer discount is a domain-level occurrence that other parts of the system may need to react to (metrics, notifications, audit). Modeling it as an event decouples the discount decision from side-effects and keeps the core domain logic focused and testable.
+- Evolving to a real message broker: The current in-memory DomainEvents pattern can be replaced with a durable message broker (e.g., RabbitMQ, Kafka, Azure Service Bus). Instead of invoking in-process handlers, the DiscountEngine would publish a CustomerDiscountApplied message to a topic/queue; subscribers can be deployed, scaled, and retried independently.
+- Possible side-effects / subscribers: examples include updating analytics or loyalty points, sending an email or in-app notification to the customer, writing an audit record, or triggering downstream billing adjustments. Subscribers should be idempotent and handle eventual delivery semantics when using a broker.
