@@ -48,12 +48,25 @@
       <div v-else>
         <!-- Orders View -->
         <div v-if="showOrders">
-          <div class="table-container">
+          <div v-if="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading orders...</p>
+          </div>
+
+          <div v-else-if="error" class="error">
+            <p>{{ error }}</p>
+            <button @click="backToCustomers" class="back-btn" style="margin-top: 1rem;">← Back to Customers</button>
+          </div>
+
+          <div v-else class="table-container">
             <div class="table-header">
               <button @click="backToCustomers" class="back-btn">← Back to Customers</button>
-              <h2>Orders for {{ selectedCustomer?.firstName }} {{ selectedCustomer?.lastName }}</h2>
+              <h2>Orders for {{ selectedCustomer?.firstName }} {{ selectedCustomer?.lastName }} ({{ orders.length }})</h2>
             </div>
-            <table class="customers-table">
+            <div v-if="orders.length === 0" class="no-orders">
+              <p>No orders found for this customer.</p>
+            </div>
+            <table v-else class="customers-table">
               <thead>
                 <tr>
                   <th>Order ID</th>
@@ -238,34 +251,43 @@ export default {
       }
     }
 
-    const viewOrders = (customer) => {
+    const viewOrders = async (customer) => {
       selectedCustomer.value = customer
       showOrders.value = true
+      loading.value = true
+      error.value = null
 
-      // Hardcoded orders for now
-      orders.value = [
-        {
-          orderId: 1001,
-          orderDate: '2024-01-15T10:30:00',
-          requiredDate: '2024-01-20T10:30:00',
-          shippedDate: '2024-01-18T14:20:00',
-          orderStatus: 3
-        },
-        {
-          orderId: 1002,
-          orderDate: '2024-02-10T09:15:00',
-          requiredDate: '2024-02-15T09:15:00',
-          shippedDate: null,
-          orderStatus: 1
-        },
-        {
-          orderId: 1003,
-          orderDate: '2024-03-05T16:45:00',
-          requiredDate: '2024-03-12T16:45:00',
-          shippedDate: '2024-03-10T11:30:00',
-          orderStatus: 3
+      try {
+        const res = await fetch(`/api/orders/customer/${customer.customerId}`, {
+          headers: {
+            'Authorization': `Bearer ${token.value}`
+          }
+        })
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            logout()
+            throw new Error('Session expired. Please login again.')
+          }
+          throw new Error(`HTTP ${res.status}`)
         }
-      ]
+
+        const data = await res.json()
+
+        // Normalize server-side property casing
+        orders.value = (data || []).map((o) => ({
+          orderId: o.orderId ?? o.OrderId,
+          orderDate: o.orderDate ?? o.OrderDate,
+          requiredDate: o.requiredDate ?? o.RequiredDate,
+          shippedDate: o.shippedDate ?? o.ShippedDate,
+          orderStatus: o.orderStatus ?? o.OrderStatus,
+        }))
+      } catch (e) {
+        error.value = e.message || 'Failed to load orders'
+        orders.value = []
+      } finally {
+        loading.value = false
+      }
     }
 
     const backToCustomers = () => {
@@ -630,6 +652,13 @@ body {
   margin-top: 1rem;
   text-align: center;
   color: #888;
+}
+
+.no-orders {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1.1rem;
 }
 
 @media (max-width: 768px) {
