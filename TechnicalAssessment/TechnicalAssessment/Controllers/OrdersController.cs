@@ -25,8 +25,9 @@ public class OrdersController : ControllerBase
             .OrderByDescending(o => o.OrderDate)
             .ToList();
 
-        var orderTotals = _dataStore.Report.GetOrderTotals();
-        var customerTotals = _dataStore.Report.GetCustomerTotals();
+        var discountEngine = _dataStore.GetDiscountEngine();
+        var orderTotals = _dataStore.Report.GetOrderTotals(discountEngine);
+        var customerTotals = _dataStore.Report.GetCustomerTotals(discountEngine);
 
         var ordersWithTotals = orders.Select(o => new
         {

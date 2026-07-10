@@ -21,7 +21,8 @@ public class CustomersController : ControllerBase
     public IActionResult Get()
     {
         var customers = _dataStore.Report.Customers.Successes;
-        var customerTotals = _dataStore.Report.GetCustomerTotals();
+        var discountEngine = _dataStore.GetDiscountEngine();
+        var customerTotals = _dataStore.Report.GetCustomerTotals(discountEngine);
 
         // Count orders per customer
         var orderCounts = _dataStore.Report.Orders.Successes
