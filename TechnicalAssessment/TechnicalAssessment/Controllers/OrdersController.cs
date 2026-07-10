@@ -27,4 +27,14 @@ public class OrdersController : ControllerBase
 
         return Ok(orders);
     }
+
+    [HttpGet("{orderId}/items")]
+    public ActionResult<IEnumerable<OrderItem>> GetOrderItems(int orderId)
+    {
+        var orderItems = _dataStore.Report.Items.Successes
+            .Where(item => item.OrderId == orderId)
+            .ToList();
+
+        return Ok(orderItems);
+    }
 }
