@@ -20,27 +20,28 @@ The API runs at `https://localhost:5001` (or the port shown in console).
 
 ## 📋 API Endpoints
 
-### Hello World Example
+### Authentication
 ```
-GET /api/hello
+POST /api/auth/login         # Authenticate and get JWT token
 ```
 
-Returns a simple greeting message to verify the API is running.
-
-### Additional Endpoints
-*(Document your actual endpoints here as you build them)*
-
-Example:
+### Customers
 ```
-GET /api/customers           # List all customers
-GET /api/customers/{id}      # Get customer by ID
-POST /api/customers          # Create new customer
-PUT /api/customers/{id}      # Update customer
-DELETE /api/customers/{id}   # Delete customer
-
-GET /api/orders              # List all orders
-POST /api/orders/import      # Import orders from CSV
+GET /api/customers           # List all customers with order counts and totals
 ```
+
+### Orders
+```
+GET /api/orders/customer/{customerId}  # Get orders for a specific customer
+GET /api/orders/{orderId}/items        # Get order items for a specific order
+```
+
+### Discounts
+```
+GET /api/discount/rules      # Get available discount rules
+```
+
+**Note**: All endpoints except `/api/auth/login` require JWT authentication via `Authorization: Bearer <token>` header.
 
 ## 🏗️ Project Structure
 
