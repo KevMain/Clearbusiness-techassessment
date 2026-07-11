@@ -36,7 +36,7 @@ npm run dev
 → Frontend runs at `http://localhost:5173`
 
 **Option 3: Visual Studio**
-1. Open `TechnicalAssessment/TechnicalAssessment.slnx`
+1. Open `TechnicalAssessment.slnx`
 2. Press F5 to run the backend
 3. Run frontend separately (see above)
 

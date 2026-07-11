@@ -14,7 +14,7 @@ dotnet run
 The API runs at `https://localhost:5001` (or the port shown in console).
 
 ### Visual Studio
-1. Open `TechnicalAssessment.slnx`
+1. Open `TechnicalAssessment.slnx` (at solution root)
 2. Set `TechnicalAssessment` as startup project
 3. Press F5 to run/debug
 
