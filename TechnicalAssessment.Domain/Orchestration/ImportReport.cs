@@ -55,7 +55,12 @@ public sealed class ImportReport
 
     public Dictionary<int, decimal> GetCustomerTotals()
     {
-        var orderTotals = GetOrderTotals();
+        return GetCustomerTotals(null);
+    }
+
+    public Dictionary<int, decimal> GetCustomerTotals(DiscountEngine? discountEngine)
+    {
+        var orderTotals = GetOrderTotals(discountEngine);
 
         var totals = new Dictionary<int, decimal>();
 

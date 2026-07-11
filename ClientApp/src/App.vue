@@ -62,6 +62,9 @@
             <div class="table-header">
               <button @click="backToCustomers" class="back-btn">← Back to Customers</button>
               <h2>Orders for {{ selectedCustomer?.firstName }} {{ selectedCustomer?.lastName }} ({{ orders.length }})</h2>
+              <div class="customer-total">
+                <strong>Customer Total: £{{ customerTotal.toFixed(2) }}</strong>
+              </div>
             </div>
             <div v-if="orders.length === 0" class="no-orders">
               <p>No orders found for this customer.</p>
@@ -74,6 +77,7 @@
                   <th>Required Date</th>
                   <th>Shipped Date</th>
                   <th>Status</th>
+                  <th>Order Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -84,9 +88,10 @@
                     <td>{{ formatDate(order.requiredDate) }}</td>
                     <td>{{ formatDate(order.shippedDate) }}</td>
                     <td><span class="status-badge">{{ getStatusText(order.orderStatus) }}</span></td>
+                    <td class="order-total">£{{ order.orderTotal.toFixed(2) }}</td>
                   </tr>
                   <tr class="items-row">
-                    <td colspan="5">
+                    <td colspan="6">
                       <div class="items-container">
                         <h4>Order Items</h4>
                         <table class="items-table">
@@ -101,9 +106,9 @@
                           <tbody>
                             <tr v-for="item in getOrderItems(order.orderId)" :key="item.itemId">
                               <td>{{ item.itemId }}</td>
-                              <td>${{ item.listPrice.toFixed(2) }}</td>
-                              <td>${{ item.discount.toFixed(2) }}</td>
-                              <td>${{ (item.listPrice - item.discount).toFixed(2) }}</td>
+                              <td>£{{ item.listPrice.toFixed(2) }}</td>
+                              <td>£{{ item.discount.toFixed(2) }}</td>
+                              <td>£{{ (item.listPrice - item.discount).toFixed(2) }}</td>
                             </tr>
                           </tbody>
                         </table>
@@ -130,6 +135,9 @@
           <div v-else class="table-container">
             <div class="table-header">
               <h2>Customers ({{ customers.length }})</h2>
+              <button @click="applyCADiscount" class="apply-discount-btn">
+                Apply CA Discount
+              </button>
             </div>
             <table class="customers-table">
               <thead>
@@ -139,6 +147,8 @@
                   <th>Last Name</th>
                   <th>State</th>
                   <th>Email</th>
+                  <th>Orders</th>
+                  <th>Total</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -149,8 +159,10 @@
                   <td>{{ c.lastName }}</td>
                   <td><span class="state-badge">{{ c.state }}</span></td>
                   <td><a :href="`mailto:${c.email}`" class="email-link">{{ c.email }}</a></td>
+                  <td class="order-count">{{ c.orderCount }}</td>
+                  <td class="customer-total-cell">£{{ c.total.toFixed(2) }}</td>
                   <td>
-                    <button @click="viewOrders(c)" class="orders-btn">Orders</button>
+                    <button @click="viewOrders(c)" class="orders-btn">View Orders</button>
                   </td>
                 </tr>
               </tbody>
@@ -184,6 +196,7 @@ export default {
     const selectedCustomer = ref(null)
     const orders = ref([])
     const orderItems = ref([])
+    const customerTotal = ref(0)
 
     // Check for existing token on mount
     onMounted(() => {
@@ -272,6 +285,8 @@ export default {
           lastName: c.lastName ?? c.LastName,
           state: c.state ?? c.State,
           email: c.email ?? c.Email,
+          orderCount: c.orderCount ?? c.OrderCount ?? 0,
+          total: c.total ?? c.Total ?? 0,
         }))
       } catch (e) {
         error.value = e.message || 'Failed to load customers'
@@ -303,13 +318,17 @@ export default {
 
         const data = await res.json()
 
+        // API now returns { Orders: [...], CustomerTotal: number }
+        customerTotal.value = data.customerTotal ?? data.CustomerTotal ?? 0
+
         // Normalize server-side property casing
-        orders.value = (data || []).map((o) => ({
+        orders.value = (data.orders ?? data.Orders ?? []).map((o) => ({
           orderId: o.orderId ?? o.OrderId,
           orderDate: o.orderDate ?? o.OrderDate,
           requiredDate: o.requiredDate ?? o.RequiredDate,
           shippedDate: o.shippedDate ?? o.ShippedDate,
           orderStatus: o.orderStatus ?? o.OrderStatus,
+          orderTotal: o.orderTotal ?? o.OrderTotal ?? 0,
         }))
 
         // Fetch items for all orders
@@ -318,6 +337,7 @@ export default {
         error.value = e.message || 'Failed to load orders'
         orders.value = []
         orderItems.value = []
+        customerTotal.value = 0
       } finally {
         loading.value = false
       }
@@ -358,6 +378,7 @@ export default {
       selectedCustomer.value = null
       orders.value = []
       orderItems.value = []
+      customerTotal.value = 0
     }
 
     const getOrderItems = (orderId) => {
@@ -385,7 +406,36 @@ export default {
       return statuses[status] || 'Unknown'
     }
 
-    return { 
+    const applyCADiscount = async () => {
+      loading.value = true
+      error.value = null
+
+      try {
+        const res = await fetch('/api/discount/apply-ca', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token.value}`
+          }
+        })
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            logout()
+            throw new Error('Session expired. Please login again.')
+          }
+          throw new Error(`HTTP ${res.status}`)
+        }
+
+        // Reload customers to show updated totals
+        await loadCustomers()
+      } catch (e) {
+        error.value = e.message || 'Failed to apply discount'
+      } finally {
+        loading.value = false
+      }
+    }
+
+    return {
       customers, 
       loading, 
       error,
@@ -400,11 +450,13 @@ export default {
       selectedCustomer,
       orders,
       orderItems,
+      customerTotal,
       viewOrders,
       backToCustomers,
       getOrderItems,
       formatDate,
-      getStatusText
+      getStatusText,
+      applyCADiscount
     }
   }
 }
@@ -516,12 +568,67 @@ body {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 2px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .table-header h2 {
   color: #333;
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.apply-discount-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.apply-discount-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.apply-discount-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.apply-discount-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.customer-total {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  font-size: 1.125rem;
+  text-align: right;
+}
+
+.order-total {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.order-count {
+  text-align: center;
+  font-weight: 600;
+}
+
+.customer-total-cell {
+  font-weight: 600;
+  color: #667eea;
 }
 
 .customers-table {

@@ -9,16 +9,31 @@ public interface IDataStore
 {
     ImportReport Report { get; }
     void LoadFromFolder(string folder);
+    DiscountEngine? GetDiscountEngine();
+    void ApplyCADiscount(decimal discountFraction);
 }
 
 public sealed class InMemoryDataStore : IDataStore
 {
+    private DiscountEngine? _discountEngine;
+
     public InMemoryDataStore()
     {
         Report = new ImportReport();
     }
 
     public ImportReport Report { get; }
+
+    public DiscountEngine? GetDiscountEngine() => _discountEngine;
+
+    public void ApplyCADiscount(decimal discountFraction)
+    {
+        var rules = new List<IDiscountRule>
+        {
+            new StateDiscountRule("CA", discountFraction)
+        };
+        _discountEngine = new DiscountEngine(rules);
+    }
 
     public void LoadFromFolder(string folder)
     {

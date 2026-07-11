@@ -1,44 +1,149 @@
-# Clearbusiness-techassessment
+# Clearbusiness Technical Assessment
 
-This repository contains a minimal ASP.NET Core backend and a Vue 3 (Vite) frontend used for the technical assessment.
+A full-stack application demonstrating Clean Architecture, TDD, and modern software engineering practices.
 
-Quick start — Backend
+## 🚀 Quick Start
 
-1. Open a terminal and run:
+### Prerequisites
+- .NET 10 SDK
+- Node.js 18+ and npm
+- Visual Studio 2026 or VS Code (optional)
 
-   cd TechnicalAssessment/TechnicalAssessment
-   dotnet restore
-   dotnet build
-   dotnet run
+### Running the Application
 
-   dotnet run prints the application URL(s) (for example: https://localhost:5001). The API endpoint is:
+**Option 1: One-Command Start (Windows/PowerShell)**
+```powershell
+.\run.ps1
+```
+This launches both backend and frontend in separate windows.
 
-   GET {BASE_URL}/api/hello
+**Option 2: Manual Start**
 
-Quick start — Frontend
+Backend (in terminal 1):
+```bash
+cd TechnicalAssessment/TechnicalAssessment
+dotnet restore
+dotnet run
+```
+→ Backend runs at `https://localhost:5001`
 
-1. Open a terminal and run:
+Frontend (in terminal 2):
+```bash
+cd ClientApp
+npm install
+npm run dev
+```
+→ Frontend runs at `http://localhost:5173`
 
-   cd ClientApp
-   npm install
-   npm run dev
+**Option 3: Visual Studio**
+1. Open `TechnicalAssessment/TechnicalAssessment.slnx`
+2. Press F5 to run the backend
+3. Run frontend separately (see above)
 
-   Vite prints the dev server URL (e.g., http://localhost:5173). By default the frontend calls `/api/hello`.
+## 📁 Solution Structure
 
-Proxy / CORS
+```
+Clearbusiness-techassessment/
+├── TechnicalAssessment/          # ASP.NET Core API
+├── TechnicalAssessment.Application/  # Use Cases & Business Logic
+├── TechnicalAssessment.Domain/       # Core Domain Models
+├── TechnicalAssessment.Infrastructure/  # Data Access & External Services
+├── tests/                        # Unit & Integration Tests
+└── ClientApp/                    # Vue 3 Frontend
+```
 
-If the backend runs on a different origin/port when developing, configure a Vite dev proxy (see ClientApp/README.md) or update the fetch URL in `ClientApp/src/App.vue` to the full API URL.
+## 🏗️ Architecture & Design Choices
 
-More details
+### Clean Architecture
+The solution follows Clean Architecture principles with clear separation of concerns:
 
-- See `TechnicalAssessment/README.md` for backend details.
-- See `ClientApp/README.md` for frontend details and example Vite proxy configuration.
+- **Domain Layer**: Business entities (Customer, Order) and domain logic with no external dependencies
+- **Application Layer**: Use cases, business workflows, and application services
+- **Infrastructure Layer**: Data persistence, CSV parsing, external integrations
+- **API Layer**: HTTP endpoints, request/response handling
 
-One-command run (Windows / PowerShell)
+**Why?** Testability, maintainability, and independence from frameworks/databases.
 
-From the repository root you can run a single PowerShell script that launches the backend and frontend in separate PowerShell windows:
+### Key Design Patterns
 
-   .\run.ps1
+**Repository Pattern**
+- Abstracts data access logic
+- Enables easy testing with in-memory implementations
+- Swappable persistence layers
 
-This opens two new terminals: one running the ASP.NET backend and one running the Vite dev server.
+**Domain Events**
+- Decoupled business event handling (e.g., `CustomerDiscountApplied`)
+- In-memory implementation with easy path to message brokers (RabbitMQ, Azure Service Bus)
+
+**CQRS-lite**
+- Separated read/write operations where beneficial
+- Optimized queries for different use cases
+
+**Dependency Injection**
+- All dependencies injected via interfaces
+- Highly testable and loosely coupled
+
+### Technology Stack
+
+**Backend**
+- **.NET 10**: Latest C# features, performance improvements
+- **ASP.NET Core**: RESTful API with minimal boilerplate
+- **Entity Framework Core**: Type-safe database access
+- **xUnit**: Modern testing framework
+
+**Frontend**
+- **Vue 3 + TypeScript**: Type-safe reactive UI
+- **Vite**: Fast development and builds
+
+### Testing Strategy
+
+**Test-Driven Development (TDD)**
+- Core domain logic written test-first
+- Unit tests for business rules, parsers, validators
+- Integration tests for API endpoints and database operations
+
+Run all tests:
+```bash
+dotnet test
+```
+
+### CSV Import Implementation
+Custom lightweight CSV parsers with:
+- Flexible date format support (dd/MM/yyyy, yyyy-MM-dd, etc.)
+- Header detection and validation
+- Graceful error handling for malformed data
+- Culture-invariant parsing
+
+See [Domain README](TechnicalAssessment.Domain/README.md) for detailed parsing behavior.
+
+## 📋 Key Features Demonstrated
+
+✅ Clean Architecture with proper layer separation  
+✅ Domain-Driven Design principles  
+✅ Test-Driven Development  
+✅ SOLID principles throughout  
+✅ RESTful API design  
+✅ Robust error handling  
+✅ Business rule enforcement  
+✅ CSV data import with validation  
+✅ Domain events for decoupled logic  
+✅ Full-stack integration (API + SPA)
+
+## 📖 Additional Documentation
+
+- [ClientApp README](ClientApp/README.md) - Frontend setup and configuration
+- [Backend README](TechnicalAssessment/README.md) - API endpoint details
+- [Domain README](TechnicalAssessment.Domain/README.md) - CSV parsing and domain events
+
+## 💡 Development Notes
+
+- **Database**: In-memory for easy setup; can be configured for SQL Server
+- **CORS**: Enabled for local development
+- **Environment**: Settings in `appsettings.Development.json`
+- **Proxy**: Vite configured to proxy `/api` requests to backend
+
+---
+
+**Author**: Kevin Main  
+**Purpose**: Technical Assessment for Clearbusiness
 
