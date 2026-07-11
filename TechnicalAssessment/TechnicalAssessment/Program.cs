@@ -1,4 +1,3 @@
-using TechnicalAssessment.Application;
 using TechnicalAssessment.Domain;
 using TechnicalAssessment.Infrastructure;
 using System.IO;
@@ -40,8 +39,6 @@ builder.Services.AddAuthentication(options =>
 });
 
 // Application & Infrastructure DI
-builder.Services.AddScoped<IHelloAppService, HelloAppService>();
-builder.Services.AddScoped<IGreeter, Greeter>();
 // In-memory data store for parsed CSVs
 builder.Services.AddSingleton<TechnicalAssessment.Infrastructure.IDataStore, TechnicalAssessment.Infrastructure.InMemoryDataStore>();
 
