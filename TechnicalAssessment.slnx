@@ -1,12 +1,9 @@
-<Solution>
-  <Project Path="TechnicalAssessment/TechnicalAssessment/TechnicalAssessment.csproj">
-    <Build Solution="Debug|*" Project="false" />
-  </Project>
+﻿<Solution>
+  <Project Path="TechnicalAssessment\TechnicalAssessment\TechnicalAssessment.csproj" />
   <Project Path="tests\TechnicalAssessment.Domain.Tests\TechnicalAssessment.Domain.Tests.csproj" />
   <Project Path="tests\TechnicalAssessment.Integration.Tests\TechnicalAssessment.Integration.Tests.csproj">
     <Build Solution="Debug|*" Project="false" />
   </Project>
   <Project Path="TechnicalAssessment.Domain\TechnicalAssessment.Domain.csproj" />
-  <Project Path="TechnicalAssessment.Application\TechnicalAssessment.Application.csproj" />
   <Project Path="TechnicalAssessment.Infrastructure\TechnicalAssessment.Infrastructure.csproj" />
 </Solution>
