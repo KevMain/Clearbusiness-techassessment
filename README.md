@@ -98,7 +98,26 @@ All endpoints (except login) require JWT: `Authorization: Bearer <token>`
 Custom lightweight parsers supporting multiple date formats (dd/MM/yyyy, yyyy-MM-dd), header detection, and graceful error handling. Built using TDD to demonstrate testing approach.
 
 ### Domain Events
-`CustomerDiscountApplied` event demonstrates event-driven architecture. Currently in-memory; production path to message brokers (RabbitMQ, Azure Service Bus) documented.
+
+When a discount is applied, we raise a `CustomerDiscountApplied` domain event.
+
+**Why model as an event?**
+- Discount application is a significant business occurrence that other systems may need to react to
+- Decouples the core discount logic from side effects (analytics, notifications, audit logs)
+- Keeps domain logic focused and testable
+
+**Evolution with message brokers:**
+Currently uses in-memory event dispatcher. Production evolution:
+1. Publish `CustomerDiscountApplied` to message broker (RabbitMQ, Azure Service Bus, Kafka)
+2. Multiple independent services subscribe to the event
+3. Each subscriber processes asynchronously with its own retry/failure handling
+4. Horizontal scaling of subscribers without affecting core discount logic
+
+**Real-world subscribers:**
+- **Analytics Service**: Update customer lifetime value metrics
+- **Notification Service**: Email/SMS customer about discount received
+- **Audit Service**: Record discount event for compliance and reporting
+- **Billing Service**: Adjust invoice calculations and payment schedules
 
 ### Testing
 - Unit tests for domain logic and parsers
